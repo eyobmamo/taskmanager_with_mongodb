@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
+	// "time"
 
 	"mongodb/models"
 
@@ -64,62 +64,74 @@ func NewTaskService() (*TaskService, error) {
 	return ts, nil
 }
 
+
+
 func (ts *TaskService) CreateTasks(task *models.Task) (models.Task, error, int) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
-	session, err := ts.client.StartSession()
+	_, err := ts.collection.InsertOne(context.TODO(), task)
 	if err != nil {
-		return models.Task{}, err, 500
+		return *task, err, 500
 	}
-	defer session.EndSession(ctx)
-
-	resultTask := models.Task{}
-	err = mongo.WithSession(ctx, session, func(sc mongo.SessionContext) error {
-		err := session.StartTransaction()
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-
-		insertResult, err := ts.collection.InsertOne(sc, task)
-		if err != nil {
-			fmt.Println(err)
-			session.AbortTransaction(sc)
-			return err
-		}
-		var fetched models.Task
-		err = ts.collection.FindOne(sc, bson.D{{"_id", insertResult.InsertedID.(primitive.ObjectID)}}).Decode(&fetched)
-
-		if err != nil {
-			fmt.Println(err)
-			session.AbortTransaction(sc)
-			return errors.New("Task Not Created")
-		}
-		var date_not_match = !fetched.DueDate.Equal(task.DueDate.In(fetched.DueDate.Location()))
-		if fetched.Title != task.Title || fetched.Description != task.Description || fetched.Status != task.Status || date_not_match {
-			session.AbortTransaction(sc)
-			return errors.New("Task Not Created")
-		}
-
-		err = session.CommitTransaction(sc)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-
-		resultTask = fetched
-		return nil
-	})
-
-	if err != nil {
-		fmt.Println(err)
-		return models.Task{}, err, 500
-	}
-
-	fmt.Println("Inserted a single document: ", resultTask.ID)
-	return resultTask, nil, 201
+	return *task , nil ,200
 }
+// func (ts *TaskService) CreateTasks(task *models.Task) (models.Task, error, int) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+//     fmt.Println(task)
+// 	session, err := ts.client.StartSession()
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return models.Task{}, err, 500
+// 	}
+// 	defer session.EndSession(ctx)
+
+// 	resultTask := models.Task{}
+// 	err = mongo.WithSession(ctx, session, func(sc mongo.SessionContext) error {
+// 		err := session.StartTransaction()
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			return err
+// 		}
+
+// 		insertResult, err := ts.collection.InsertOne(sc, task)
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			session.AbortTransaction(sc)
+// 			return err
+// 		}
+
+// 		var fetched models.Task
+// 		err = ts.collection.FindOne(sc, bson.D{{"_id", insertResult.InsertedID.(primitive.ObjectID)}}).Decode(&fetched)
+
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			session.AbortTransaction(sc)
+// 			return errors.New("Task Not Created")
+// 		}
+// 		var date_not_match = !fetched.DueDate.Equal(task.DueDate.In(fetched.DueDate.Location()))
+// 		if fetched.Title != task.Title || fetched.Description != task.Description || fetched.Status != task.Status || date_not_match {
+// 			session.AbortTransaction(sc)
+// 			return errors.New("Task Not Created")
+// 		}
+
+// 		err = session.CommitTransaction(sc)
+// 		if err != nil {
+// 			fmt.Println(err)
+// 			return err
+// 		}
+
+// 		resultTask = fetched
+// 		return nil
+// 	})
+
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return models.Task{}, err, 500
+// 	}
+
+// 	fmt.Println("Inserted a single document: ", resultTask.ID)
+// 	return resultTask, nil, 201
+// }
 
 func (ts *TaskService) GetTasks() ([]*models.Task, error, int) {
 	_, err1 := ts.collection.Indexes().CreateOne(context.TODO(), mongo.IndexModel{

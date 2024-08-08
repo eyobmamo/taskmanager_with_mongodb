@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"log"
 	"mongodb/router"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load()
 	fmt.Println("Task Manager API")
 	r := router.NewRouter()
 	if r != nil {

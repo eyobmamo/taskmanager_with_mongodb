@@ -15,10 +15,9 @@ const (
 )
 
 type Task struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" bson:"_id,omitempty"`
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	Title       string             `json:"title" validate:"required"`
 	Description string             `json:"description" validate:"required"`
 	DueDate     time.Time          `json:"due_date" validate:"required"`
-	Status      TaskStatus         `json:"status" validate:"required"`
+	Status      TaskStatus         `json:"status"`
 }
-

@@ -1,14 +1,13 @@
 package controllers
 
 import (
-	"fmt"
+    "fmt"
 	"mongodb/data"
 	"mongodb/models"
 	"mongodb/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -45,28 +44,28 @@ func (tc *taskController) GetAllTasks(c *gin.Context) {
 
 func (tc *taskController) CreateTasks(c *gin.Context) {
 	var newTak models.Task
-	v := validator.New()
+	// v := validator.New()
 	if err := c.ShouldBindJSON(&newTak); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid data", "error": err.Error()})
 		return
 	}
-	if err := v.Struct(newTak); err != nil {
-		fmt.Printf(err.Error())
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid or missing data", "error": err.Error()})
-		return
-	}
-	err := utils.ValidateStatus(&newTak)
-	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid or missing data, allowed options are Pending, In Progress, and Completed", "error": err.Error()})
-		return
-	}
-
+	// if err := v.Struct(newTak); err != nil {
+	// 	fmt.Printf(err.Error())
+	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid or missing data", "error": err.Error()})
+	// 	return
+	// }
+	// err := utils.ValidateStatus(&newTak)
+	// if err != nil {
+	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid or missing data, allowed options are Pending, In Progress, and Completed", "error": err.Error()})
+	// 	return
+	// }
+	fmt.Println(newTak)
 	task, err, statusCode := tc.taskService.CreateTasks(&newTak)
 	if err != nil {
 		c.IndentedJSON(statusCode, gin.H{"error": err.Error()})
 	} else {
 		c.IndentedJSON(http.StatusCreated, task)
-	}
+	}	
 }
 
 func (tc *taskController) GetTasksById(c *gin.Context) {
